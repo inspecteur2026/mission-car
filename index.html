@@ -13,121 +13,30 @@
       <h2 class="text-2xl font-bold text-gray-800 mb-6 text-center">برنامج الخرجات الشهرية (واجهة المفتش)</h2>
       
       <form id="bookingForm" class="space-y-4">
+        <!-- كتابة اسم المفتش -->
         <div>
           <label class="block text-sm font-medium text-gray-700 mb-1">اسم المفتش:</label>
-          <select id="inspectorName" required class="w-full border border-gray-300 rounded-md p-2 bg-white">
-            <option value="">-- اختر المفتش --</option>
-            <option value="مفتش 1">مفتش 1</option>
-            <option value="مفتش 2">مفتش 2</option>
-            <option value="مفتش 3">مفتش 3</option>
-            <option value="مفتش 4">مفتش 4</option>
-            <option value="مفتش 5">مفتش 5</option>
-            <option value="مفتش 6">مفتش 6</option>
-            <option value="مفتش 7">مفتش 7</option>
-            <option value="مفتش 8">مفتش 8</option>
-            <option value="مفتش 9">مفتش 9</option>
-            <option value="مفتش 10">مفتش 10</option>
-            <option value="مفتش 11">مفتش 11</option>
-            <option value="مفتش 12">مفتش 12</option>
-            <option value="مفتش 13">مفتش 13</option>
-          </select>
+          <input type="text" id="inspectorName" placeholder="أدخل الاسم الكامل للمفتش" required class="w-full border border-gray-300 rounded-md p-2 focus:ring-2 focus:ring-blue-500">
         </div>
 
+        <!-- رقم التأجير -->
         <div>
           <label class="block text-sm font-medium text-gray-700 mb-1">رقم التأجير:</label>
-          <input type="text" id="rentalNum" placeholder="أدخل رقم التأجير" required class="w-full border border-gray-300 rounded-md p-2">
+          <input type="text" id="rentalNum" placeholder="أدخل رقم التأجير" required class="w-full border border-gray-300 rounded-md p-2 focus:ring-2 focus:ring-blue-500">
         </div>
 
-        <div>
-          <label class="block text-sm font-medium text-gray-700 mb-1">الوجهة:</label>
-          <input type="text" id="destination" placeholder="أدخل مكان الخرجة" required class="w-full border border-gray-300 rounded-md p-2">
-        </div>
-
-        <div>
-          <label class="block text-sm font-medium text-gray-700 mb-1">تاريخ الخروج:</label>
-          <input type="date" id="availableDate" required class="w-full border border-gray-300 rounded-md p-2 bg-white">
-          <p id="dateWarning" class="text-red-500 text-sm mt-1 hidden">⚠️ هذا التاريخ محجوز بالفعل! اختر تاريخاً آخر.</p>
-        </div>
-
-        <button type="submit" id="submitBtn" class="w-full bg-blue-600 text-white py-3 rounded-md hover:bg-blue-700 font-bold">
-          تأكيد الحجز
-        </button>
-      </form>
-
-      <div id="alertSuccess" class="hidden mt-4 p-4 bg-green-100 border border-green-400 text-green-800 rounded-md text-center"></div>
-    </div>
-  </div>
-
-  <script>
-    const GOOGLE_SCRIPT_URL = "ضع_رابط_GOOGLE_APPS_SCRIPT_هنا";
-
-    let bookedDates = [];
-
-    // جلب التواريخ المحجوزة عند فتح الصفحة
-    fetch(GOOGLE_SCRIPT_URL)
-      .then(res => res.json())
-      .then(data => { bookedDates = data; })
-      .catch(err => console.error("خطأ في جلب البيانات:", err));
-
-    // التحقق فور اختيار تاريخ
-    document.getElementById('availableDate').addEventListener('change', function() {
-      const warning = document.getElementById('dateWarning');
-      if (bookedDates.includes(this.value)) {
-        warning.classList.remove('hidden');
-        this.value = '';
-      } else {
-        warning.classList.add('hidden');
-      }
-    });
-
-    document.getElementById('bookingForm').addEventListener('submit', function(e) {
-      e.preventDefault();
-      
-      const submitBtn = document.getElementById('submitBtn');
-      const alertDiv = document.getElementById('alertSuccess');
-      
-      submitBtn.disabled = true;
-      submitBtn.innerText = "جاري الحفظ...";
-
-      const data = {
-        inspector: document.getElementById('inspectorName').value,
-        rental: document.getElementById('rentalNum').value,
-        destination: document.getElementById('destination').value,
-        date: document.getElementById('availableDate').value
-      };
-
-      fetch(GOOGLE_SCRIPT_URL, {
-        method: "POST",
-        mode: "no-cors",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(data)
-      })
-      .then(() => {
-        alertDiv.innerHTML = `✅ <b>تم تسجيل الحجز بنجاح!</b><br>المفتش: ${data.inspector} | التاريخ: ${data.date}`;
-        alertDiv.classList.remove('hidden');
-        bookedDates.push(data.date); // إضافة التاريخ المحجوز مؤقتاً لعدم تكراره
-        document.getElementById('bookingForm').reset();
-      })
-      .catch(() => {
-        alert("حدث خطأ، يرجى المحاولة مرة أخرى.");
-      })
-      .finally(() => {
-        submitBtn.disabled = false;
-        submitBtn.innerText = "تأكيد الحجز";
-      });
-    });
-  </script>
-</body>
-</html>
-
+        <!-- الوجهة -->
         <div>
           <label class="block text-sm font-medium text-gray-700 mb-1">الوجهة:</label>
           <input type="text" id="destination" placeholder="أدخل مكان الخرجة" required class="w-full border border-gray-300 rounded-md p-2 focus:ring-2 focus:ring-blue-500">
         </div>
 
+        <!-- تاريخ الخروج المتاح -->
         <div>
-          <label class="block text-sm font-medium text-gray-700 mb-1">تاريخ الخروج:</label>
-          <input type="date" id="availableDate" required class="w-full border border-gray-300 rounded-md p-2 bg-white focus:ring-2 focus:ring-blue-500">
+          <label class="block text-sm font-medium text-gray-700 mb-1">تاريخ الخروج المتاح:</label>
+          <select id="availableDate" required class="w-full border border-gray-300 rounded-md p-2 bg-white focus:ring-2 focus:ring-blue-500">
+            <option value="">جاري تحميل التواريخ المتاحة...</option>
+          </select>
         </div>
 
         <button type="submit" id="submitBtn" class="w-full bg-blue-600 text-white py-3 rounded-md hover:bg-blue-700 font-bold transition duration-200">
@@ -140,14 +49,72 @@
   </div>
 
   <script>
-    // استبدل هذا الرابط بالرابط الخاص بك
-    const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyZ9tJESPm65yzKW1LM8176vrnB7qKxrc8z8OIs0HfykTWf1HXgQSw_bu6DrUzStUSXfA/exec";
+    const GOOGLE_SCRIPT_URL = "ضع_رابط_GOOGLE_APPS_SCRIPT_هنا";
+
+    // توليد أيام الشهر الحالي 30/31 يوم
+    function generateMonthDates() {
+      const dates = [];
+      const today = new Date();
+      const year = today.getFullYear();
+      const month = today.getMonth();
+      const daysInMonth = new Date(year, month + 1, 0).getDate();
+
+      for (let day = 1; day <= daysInMonth; day++) {
+        const d = new Date(year, month, day);
+        const yyyy = d.getFullYear();
+        const mm = String(d.getMonth() + 1).padStart(2, '0');
+        const dd = String(d.getDate()).padStart(2, '0');
+        dates.push(`${yyyy}-${mm}-${dd}`);
+      }
+      return dates;
+    }
+
+    // جلب التواريخ المحجوزة وحذفها من القائمة
+    function loadAvailableDates() {
+      const dateSelect = document.getElementById('availableDate');
+      dateSelect.innerHTML = '<option value="">جاري تحديث التواريخ المتاحة...</option>';
+
+      fetch(GOOGLE_SCRIPT_URL)
+        .then(res => res.json())
+        .then(bookedDates => {
+          const allDates = generateMonthDates();
+          // تصفية التواريخ: الإبقاء على التواريخ غير المحجوزة فقط
+          const available = allDates.filter(d => !bookedDates.includes(d));
+
+          dateSelect.innerHTML = '<option value="">-- اختر تاريخ الخروج --</option>';
+          if (available.length === 0) {
+            dateSelect.innerHTML = '<option value="">⚠️ جميع تواريخ هذا الشهر محجوزة</option>';
+          } else {
+            available.forEach(date => {
+              const opt = document.createElement('option');
+              opt.value = date;
+              opt.textContent = date;
+              dateSelect.appendChild(opt);
+            });
+          }
+        })
+        .catch(err => {
+          console.error(err);
+          const allDates = generateMonthDates();
+          dateSelect.innerHTML = '<option value="">-- اختر تاريخ الخروج --</option>';
+          allDates.forEach(date => {
+            const opt = document.createElement('option');
+            opt.value = date;
+            opt.textContent = date;
+            dateSelect.appendChild(opt);
+          });
+        });
+    }
+
+    // تحميل التواريخ فور فتح الصفحة
+    window.addEventListener('DOMContentLoaded', loadAvailableDates);
 
     document.getElementById('bookingForm').addEventListener('submit', function(e) {
       e.preventDefault();
       
       const submitBtn = document.getElementById('submitBtn');
       const alertDiv = document.getElementById('alertSuccess');
+      const selectedDate = document.getElementById('availableDate').value;
       
       submitBtn.disabled = true;
       submitBtn.innerText = "جاري الحفظ...";
@@ -156,7 +123,7 @@
         inspector: document.getElementById('inspectorName').value,
         rental: document.getElementById('rentalNum').value,
         destination: document.getElementById('destination').value,
-        date: document.getElementById('availableDate').value
+        date: selectedDate
       };
 
       fetch(GOOGLE_SCRIPT_URL, {
@@ -169,6 +136,8 @@
         alertDiv.innerHTML = `✅ <b>تم تسجيل الحجز بنجاح!</b><br>المفتش: ${data.inspector} | التاريخ: ${data.date}`;
         alertDiv.classList.remove('hidden');
         document.getElementById('bookingForm').reset();
+        // إعادة تحديث قائمة التواريخ وحذف التاريخ المحجوز فوراً
+        loadAvailableDates();
       })
       .catch(() => {
         alert("حدث خطأ أثناء الاتصال، يرجى المحاولة مرة أخرى.");
