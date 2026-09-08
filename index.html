@@ -47,10 +47,12 @@
       <div id="alertSuccess" class="hidden mt-4 p-4 bg-green-100 border border-green-400 text-green-800 rounded-md text-center"></div>
     </div>
   </div>
-<script>
+
+  <script>
+    // ضع رابط تطبيق الويب الخاص بـ Google Apps Script بين الكوتيشن
     const GOOGLE_SCRIPT_URL = "ضع_رابط_GOOGLE_APPS_SCRIPT_هنا";
 
-    // توليد أيام الشهر الحالي 30/31 يوم بصيغة YYYY-MM-DD
+    // توليد أيام الشهر الحالي
     function generateMonthDates() {
       const dates = [];
       const today = new Date();
@@ -66,16 +68,38 @@
       return dates;
     }
 
-    // جلب التواريخ المحجوزة وحذفها من القائمة المنسدلة
+    // دالة JSONP لطلب البيانات بدون قيود CORS
+    function jsonpRequest(url, params, callbackName) {
+      return new Promise((resolve, reject) => {
+        const script = document.createElement('script');
+        const queryParams = new URLSearchParams(params);
+        queryParams.append('callback', callbackName);
+
+        window[callbackName] = function(data) {
+          delete window[callbackName];
+          document.body.removeChild(script);
+          resolve(data);
+        };
+
+        script.onerror = function() {
+          delete window[callbackName];
+          if (script.parentNode) document.body.removeChild(script);
+          reject(new Error("خطأ في الاتصال بالخادم"));
+        };
+
+        script.src = `${url}?${queryParams.toString()}`;
+        document.body.appendChild(script);
+      });
+    }
+
+    // جلب التواريخ المتاحة
     function loadAvailableDates() {
       const dateSelect = document.getElementById('availableDate');
       dateSelect.innerHTML = '<option value="">جاري تحديث التواريخ المتاحة...</option>';
 
-      fetch(GOOGLE_SCRIPT_URL)
-        .then(res => res.json())
+      jsonpRequest(GOOGLE_SCRIPT_URL, { action: 'getDates' }, 'handleGetDates')
         .then(bookedDates => {
           const allDates = generateMonthDates();
-          // استبعاد التواريخ المحجوزة
           const available = allDates.filter(d => !bookedDates.includes(d));
 
           dateSelect.innerHTML = '<option value="">-- اختر تاريخ الخروج --</option>';
@@ -91,7 +115,7 @@
           }
         })
         .catch(err => {
-          console.error("خطأ في جلب التواريخ:", err);
+          console.error(err);
           const allDates = generateMonthDates();
           dateSelect.innerHTML = '<option value="">-- اختر تاريخ الخروج --</option>';
           allDates.forEach(date => {
@@ -103,7 +127,6 @@
         });
     }
 
-    // تحميل التواريخ المتاحة فور فتح الصفحة
     window.addEventListener('DOMContentLoaded', loadAvailableDates);
 
     document.getElementById('bookingForm').addEventListener('submit', function(e) {
@@ -125,38 +148,38 @@
       submitBtn.disabled = true;
       submitBtn.innerText = "جاري الحفظ...";
 
-      const formData = new URLSearchParams();
-      formData.append('date', selectedDate);
-      formData.append('inspector', inspectorVal);
-      formData.append('rental', rentalVal);
-      formData.append('destination', destVal);
+      const params = {
+        action: 'addBooking',
+        date: selectedDate,
+        inspector: inspectorVal,
+        rental: rentalVal,
+        destination: destVal
+      };
 
-      fetch(GOOGLE_SCRIPT_URL, {
-        method: "POST",
-        mode: "no-cors",
-        body: formData
-      })
-      .then(() => {
-        alertDiv.innerHTML = `✅ <b>تم تسجيل الحجز بنجاح!</b><br>المفتش: ${inspectorVal} | التاريخ: ${selectedDate}`;
-        alertDiv.classList.remove('hidden');
-        
-        // مسح التاريخ المحجوز من القائمة فوراً
-        const optionToRemove = dateSelect.querySelector(`option[value="${selectedDate}"]`);
-        if (optionToRemove) {
-          optionToRemove.remove();
-        }
-        
-        document.getElementById('bookingForm').reset();
-        
-        // إعادة جلب القائمة من السيرفر للتأكيد
-        setTimeout(loadAvailableDates, 1500);
-      })
-      .catch(() => {
-        alert("حدث خطأ أثناء الاتصال، يرجى المحاولة مرة أخرى.");
-      })
-      .finally(() => {
-        submitBtn.disabled = false;
-        submitBtn.innerText = "تأكيد الحجز";
-      });
+      jsonpRequest(GOOGLE_SCRIPT_URL, params, 'handleAddBooking')
+        .then(res => {
+          if (res && res.status === "success") {
+            alertDiv.innerHTML = `✅ <b>تم تسجيل الحجز بنجاح!</b><br>المفتش: ${inspectorVal} | التاريخ: ${selectedDate}`;
+            alertDiv.classList.remove('hidden');
+            
+            // إخفاء التاريخ من القائمة فوراً
+            const optionToRemove = dateSelect.querySelector(`option[value="${selectedDate}"]`);
+            if (optionToRemove) optionToRemove.remove();
+
+            document.getElementById('bookingForm').reset();
+            loadAvailableDates();
+          } else {
+            alert("حدث خطأ أثناء الحفظ، يرجى المحاولة لاحقاً.");
+          }
+        })
+        .catch(err => {
+          alert("حدث خطأ أثناء الاتصال، يرجى المحاولة مرة أخرى.");
+        })
+        .finally(() => {
+          submitBtn.disabled = false;
+          submitBtn.innerText = "تأكيد الحجز";
+        });
     });
   </script>
+</body>
+</html>
